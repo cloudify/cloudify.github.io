@@ -18,7 +18,7 @@ theme_settings:
 
   # Icons
   rss: false
-  email_address: # Full email address, e.g. "sam@example.com"
+  email_address: "pix@yahoo.it"
   behance:
   bitbucket:
   dribbble:
@@ -30,7 +30,7 @@ theme_settings:
   instagram:
   linkedin: https://linkedin.com/in/feroldi
   pinterest:
-  reddit:
+  reddit: "cloudify"
   soundcloud:
   stack_exchange:  # Full URL
   steam:
@@ -40,7 +40,7 @@ theme_settings:
   youtube:
 
   # Scripts
-  google_analytics: # Tracking ID, e.g. "UA-000000-01"
+  google_analytics: "UA-111022288-1"
   disqus_shortname:
   katex: true # Enable if using math markup
   search: false # Enable the search feature
@@ -62,7 +62,7 @@ theme_settings:
   google_fonts: "Source+Sans+Pro:400,700,700italic,400italic"
 
   # Post navigation
-  post_navigation: false
+  post_navigation: true
 
 # PAGINATION
 paginate: 5

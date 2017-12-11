@@ -1,3 +1,10 @@
+PATH
+  remote: .
+  specs:
+    jekyll-theme-type (1.1)
+      jekyll (~> 3.4)
+      jekyll-paginate (~> 1.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -203,6 +210,7 @@ GEM
     pathutil (0.16.0)
       forwardable-extended (~> 2.6)
     public_suffix (2.0.5)
+    rake (10.5.0)
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
@@ -232,7 +240,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bundler (~> 1.12)
   github-pages
+  jekyll-theme-type!
+  rake (~> 10.0)
 
 BUNDLED WITH
    1.15.4
