@@ -447,10 +447,10 @@ interface IResponseJson {
 // Request anymore, it gets all params it needs,
 // already parsed and validated by the middlewares
 // - look also how expressive is the type of this
-// handler, we immediately know what goes in (User)
+// handler, we immediately know what goes in (IUser)
 // and comes out (IResponseOkJson<IResponseJson>)
 const getUserHandler: 
-  (user: User) => Promise<IResponseOkJson<IResponseJson>> = 
+  (user: IUser) => Promise<IResponseOkJson<IResponseJson>> = 
   (user) => {
     const responseJson: IResponseJson = {
       user_name: user.name
