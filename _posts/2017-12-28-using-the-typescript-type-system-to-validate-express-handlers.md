@@ -1,10 +1,10 @@
 ---
 title:  "Using the TypeScript type system to validate Express handlers"
 layout: post
-tags: [coding]
+tags: [typescript, express, typesafe]
 ---
 
-In this post I'll describe a powerful technique for using the TypeScript type system to verify at build time that request handlers and middlewares receive the validated types they expect and generate the expected response types. This technique makes the code more robust without adding any runtime overhead.
+In this post I'll describe a powerful technique for using the TypeScript type system to verify at build time that request handlers and middlewares receive the validated types they expect and generate the expected response types. This technique makes the code more robust without adding any runtime overhead.  
 
 ## Unsafe request handlers
 
@@ -28,7 +28,7 @@ app.get('/user/:user', function(req, res, next){
 });
 ```
 
-Now, this works, but is not _safe_ from the point of view of the request handler:
+Now, this works, but is not _safe_ from the point of view of the request handler: 
 
 * there's not guarantee that the `req` object will have a `user` attribute that is in fact a `User`, with a `name` (no type checking) - you could add this guarantee by adding some defensive logic in the handler that verifies that `req.user` is actually a valid `User` - this approach will work but it will add unneeded runtime overhead
 * there's no guarantee that the middleware is there, suppose this code gets refactored and the middleware gets moved somewhere else - you'll need to write unit tests to make sure that the middleware is indeed called before the request handler
@@ -60,7 +60,7 @@ Now we just need to make this functional approach as generic and reusable as pos
 
 ## Functional middlewares
 
-I usually find it very useful to start writing code by first defining the types - once you define the types and everything looks consistent, the logic will be much easier to write.
+I usually find it very useful to start writing code by first defining the types - once you define the types and everything looks consistent, the logic will be much easier to write. 
 
 Let's define first a type for our middleware functions: essentially a `Middleware` is a function that extracts an object of a certain type `T` from a `Request`. Extracting the object may require interacting with some asynchronous resource (e.g. a database) so want we actually want is a `Promise<T>`. Moreover the processing of the `Request` may fail, so the middleware may have to stop the processing of the request and return a response right away. Thus what we really want is a `Promise<Either<Error, T>>`. [^1] [^2]
 
@@ -70,7 +70,7 @@ Finally, we want to have a way to set HTTP status codes and arbitrary values whe
 interface IResponse {
   readonly apply: (res: express.Response) => void;
 }
-```
+``` 
 
 For example, to construct instance of `IResponse` for successful responses we could use this function:
 
@@ -86,7 +86,7 @@ And for constructing error responses we could use this one:
 
 ``` ts
 function ResponseError(
-  status: number,
+  status: number, 
   message: string
 ): IResponse {
   return {
@@ -103,7 +103,7 @@ type RequestMiddleware<T> = (
 ) => Promise<Either<IResponse, T>>;
 ```
 
-The type is self-descriptive, it defines a middleware as a function that takes a `Request` and asynchronously returns either an `IResponse` (in case of error) or a value of type `T`.
+The type is self-descriptive, it defines a middleware as a function that takes a `Request` and asynchronously returns either an `IResponse` (in case of error) or a value of type `T`.  
 
 We can now translate our initial example code that extracts the `user` from the request into a more functional middleware:
 
@@ -134,7 +134,7 @@ function userMiddleware(
 
 ## Functional request handlers
 
-Now that we have `RequestMiddleware` type for extracting arbitrary values from a `Request` in a type safe way, how do we define a handler? Well, now handlers don't have to extract information from a `Request` anymore, so they just become pure functions that take some values and return an `IResponse`.
+Now that we have `RequestMiddleware` type for extracting arbitrary values from a `Request` in a type safe way, how do we define a handler? Well, now handlers don't have to extract information from a `Request` anymore, so they just become pure functions that take some values and return an `IResponse`.  
 
 We can now translate our initial example into a more functional handler:
 
@@ -153,9 +153,9 @@ Note that in the case of a request handler, we don't need an `Either` anymore si
 
 Now we know how to extract values from a `Request` and how to generate an `IResponse` from those values. But how to we glue everything together into a function that can be used as an Express handler?
 
-First of all we need a way to compose middlewares and handlers. In the previous example we used one single middleware to extract a value from the `Request` but in practice we want to be able to chain multiple reusable middlewares that can extract several values from a single `Request`.[^3]
+First of all we need a way to compose middlewares and handlers. In the previous example we used one single middleware to extract a value from the `Request` but in practice we want to be able to chain multiple reusable middlewares that can extract several values from a single `Request`.[^3] 
 
-Let's reason about how we could create a function that can compose an arbitrary number of middlewares with a request handler.
+Let's reason about how we could create a function that can compose an arbitrary number of middlewares with a request handler. 
 
 Starting with a single middleware we have:
 
@@ -176,13 +176,13 @@ function withMiddleware<T>(
           // if the result is an error response,
           // resolve the promise with the error
           // response (processing of the request
-          // stops here)
+          // stops here) 
           resolve(v.value);
         } else {
           // if the result is a valid value
           // pass it to the request handler...
           handler(v.value)
-            // ...and resolve this promise with the
+            // ...and resolve this promise with the 
             // handler response
             .then(resolve, reject);
         }
@@ -192,7 +192,7 @@ function withMiddleware<T>(
 }
 ```
 
-The `withMiddleware` function looks a little bit complicated but is in fact very simple. It takes a `RequestMiddleware` that extracts a value of type `T` from a `Request` and a function (`handler`) that takes that value of type `T` and returns an `IResponse`.
+The `withMiddleware` function looks a little bit complicated but is in fact very simple. It takes a `RequestMiddleware` that extracts a value of type `T` from a `Request` and a function (`handler`) that takes that value of type `T` and returns an `IResponse`. 
 
 The `withMiddleware` function returns a new function that takes an Express `Request` and returns an `IResponse`.
 
@@ -201,7 +201,7 @@ We can now compose the middleware and the handler to process a `Request` and hav
 ``` ts
 const h = withMiddleware(userMiddleware)(getUserHandler);
 // h: (Request) => IResponse
-```
+``` 
 
 Now we need a way to transform the function returned by `withMiddleware` into an Express handler:
 
@@ -270,13 +270,13 @@ function withMiddleware<T1, T2>(
     });
   };
 }
-```
+``` 
 
 As you can see, we extend he logic by calling the middlewares in sequence, every time a middleware returns a response, we return that response - once we called all the middlewares we have all the values required by the handler. Once we reach that point we just call the handler and return its response. [Here](https://github.com/teamdigitale/digital-citizenship-functions/blob/master/lib/utils/request_middleware.ts#L156) you can see an implementation that can accept up to six middlewares.
 
 ## Type safe responses
 
-Now that we have a way to make sure that request handlers actually get the parameter they need in a type safe way, let's see if we can do the same with the responses.
+Now that we have a way to make sure that request handlers actually get the parameter they need in a type safe way, let's see if we can do the same with the responses. 
 
 Until now we only had one single type of response (`IResponse`), this makes it impossible for the type system to know what kind of responses middleware and handlers generate (does the handler generate only `200`s or also `404`s?).
 
@@ -289,24 +289,24 @@ interface IResponse<T> {
 }
 ```
 
-The `kind` attribute doesn't have to have an actual value, it's just a [literal type](https://basarat.gitbooks.io/typescript/docs/types/literal-types.html), a way for the type system to discriminate different `IResponse` types.
+The `kind` attribute doesn't have to have an actual value, it's just a [literal type](https://basarat.gitbooks.io/typescript/docs/types/literal-types.html), a way for the type system to discriminate different `IResponse` types. 
 
 Now we can define specific response types and their constructors:
 
 ``` ts
 // a successful response (HTTP 200)
-interface IResponseOk
+interface IResponseOk 
   extends IResponse<"IResponseOk"> {};
 
 function ResponseOk(value: any): IResponseOk {
   return {
     kind: "IResponseOk",
-    apply: res => res.send(value)
+    apply: res => res.send(value) 
   };
 }
 
 // a Not Found response (HTTP 404)
-interface IResponseNotFound
+interface IResponseNotFound 
   extends IResponse<"IResponseNotFound"> {};
 
 function ResponseNotFound(message: string): IResponseNotFound = {
@@ -343,7 +343,7 @@ interface UserJson {
 /**
  * A request handler that returns a User's name
  */
-function getUserHandler(user: User):
+function getUserHandler(user: User): 
   Promise<IResponseOkJson<UserJson>> {
   const userJson = {
     name: user.name
@@ -409,6 +409,66 @@ function wrapRequestHandler<R>(
 
 ## Conclusion
 
+Let's now rewrite our initial example with this new functional approach (the code looks a little verbose because I've made explicit all types):
+
+``` ts
+const app = module.exports = express();
+
+// the internal representation of a User
+interface IUser {
+  name: string;
+};
+
+// the "User" database
+const users: ReadonlyArray<IUser> = 
+  [ { name: 'tj' } ];
+
+// the middleware that looks up the User from
+// the Request, note how expressive is the type
+// of the middleware: we can immediately understand
+// all the possible outcomes of this middlware
+// from its type (and the type system knows that too) 
+const userMiddleware: RequestMiddleware<IResponseNotFound, IUser> = 
+(req) => {
+  const id = req.params.user;
+  const user = users[id];
+  const res = user ? 
+    right(user) : 
+    left(ResponseNotFound("failed to find user"));
+  return Promise.resolve(res);
+}
+
+// describes our API response
+interface IResponseJson {
+  user_name: string;
+};
+
+// the request handler doesn't deal with a raw
+// Request anymore, it gets all params it needs,
+// already parsed and validated by the middlewares
+// - look also how expressive is the type of this
+// handler, we immediately know what goes in (User)
+// and comes out (IResponseOkJson<IResponseJson>)
+const getUserHandler: 
+  (user: User) => Promise<IResponseOkJson<IResponseJson>> = 
+  (user) => {
+    const responseJson: IResponseJson = {
+      user_name: user.name
+    };
+    Promise.resolve(ResponseOkJson(responseJson));
+  });
+
+// now compose the middleware and the handler -
+// note how the result type includes all possible
+// responses (from the middleware and from the handler)
+const h: (express.Request) => 
+  Promise<IResponseOkJson<IResponseJson> | IResponseNotFound> = 
+  withMiddlewares(userMiddleware)(getUserHandler);
+
+// finally, we generate the handler for Express
+app.get('/user/:user', wrapRequestHandler(h));
+```
+
 Let's recap what we have accomplished:
 
 * a request middleware that takes a `Request` and produces defined response (`IResponseNotFound`) and output (`User`) types
@@ -429,7 +489,7 @@ What's next? The next step would be to __automatically generate request handlers
 
 You can see this technique implemented in a [real world project](https://github.com/teamdigitale/digital-citizenship-functions) (look under `lib/utils` and `lib/controllers`.
 
-[^1]: Why can't we just use `Promise<T>` since promises can carry an `Error`? The problem is that you can't specify the type of your `Error`, instead we want to be able to define the type of error response too.
+[^1]: Why can't we just use `Promise<T>` since promises can carry an `Error`? The problem is that you can't specify the type of your `Error`, instead we want to be able to define the type of error response too. 
 
 [^2]: An `Either<T,V>` type represents either an error of type `T` or a successful value of type `V` - you can see an implementation in the [fp-ts](https://github.com/gcanti/fp-ts/blob/master/src/Either.ts) library.
 
