@@ -489,6 +489,8 @@ What's next? The next step would be to __automatically generate request handlers
 
 You can see this technique implemented in a [real world project](https://github.com/teamdigitale/digital-citizenship-functions) (look under `lib/utils` and `lib/controllers`.
 
+Discuss this post on [Reddit](https://www.reddit.com/r/typescript/comments/7njo0k/write_less_unit_tests_using_the_typescript_type/).
+
 [^1]: Why can't we just use `Promise<T>` since promises can carry an `Error`? The problem is that you can't specify the type of your `Error`, instead we want to be able to define the type of error response too. 
 
 [^2]: An `Either<T,V>` type represents either an error of type `T` or a successful value of type `V` - you can see an implementation in the [fp-ts](https://github.com/gcanti/fp-ts/blob/master/src/Either.ts) library.
