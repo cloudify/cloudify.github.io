@@ -426,7 +426,7 @@ const users: ReadonlyArray<IUser> =
 // the middleware that looks up the User from
 // the Request, note how expressive is the type
 // of the middleware: we can immediately understand
-// all the possible outcomes of this middlware
+// all the possible outcomes of this middleware
 // from its type (and the type system knows that too) 
 const userMiddleware: RequestMiddleware<IResponseNotFound, IUser> = 
 (req) => {
