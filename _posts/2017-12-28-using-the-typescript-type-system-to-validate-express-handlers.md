@@ -387,12 +387,12 @@ type RequestMiddleware<R, T> = (
 // produces a function that can return responses of
 // type given by the union of the middlewares response
 // types (R1, R2) and the handler response type (RH)
-function withMiddleware<RH, R1, R2, T1, T2>(
+function withMiddleware<R1, R2, T1, T2>(
   m1: RequestMiddleware<R1, T1>,
   m2: RequestMiddleware<R2, T2>
-)(
+): <RH>(
   handler: (v1: T1, v2: T2) => Promise<IResponse<RH>>
-): (req: Request) => Promise<IResponse<RH | R1 | R2>> {
+) => ((req: Request) => Promise<IResponse<RH | R1 | R2>>) {
   // ... body stays the same as before
 }
 ```
@@ -489,7 +489,9 @@ What's next? The next step would be to __automatically generate request handlers
 
 You can see this technique implemented in a [real world project](https://github.com/teamdigitale/digital-citizenship-functions) (look under `lib/utils` and `lib/controllers`.
 
-Discuss this post on [Reddit](https://www.reddit.com/r/typescript/comments/7njo0k/write_less_unit_tests_using_the_typescript_type/).
+Discuss this post on [Reddit](https://www.reddit.com/r/typescript/comments/7njo0k/write_less_unit_tests_using_the_typescript_type/) and [HN](https://news.ycombinator.com/item?id=16061186).
+
+_Update: fixed `withMiddleware` type signature, thanks Giulio Canti for [the catch](https://github.com/teamdigitale/digital-citizenship-functions/pull/134#pullrequestreview-86629884)._ 
 
 [^1]: Why can't we just use `Promise<T>` since promises can carry an `Error`? The problem is that you can't specify the type of your `Error`, instead we want to be able to define the type of error response too. 
 
